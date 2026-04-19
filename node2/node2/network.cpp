@@ -14,14 +14,12 @@ static void doConnect(void){
   
   if(mqtt->connect(CLIENT_ID, ACCESS_TOKEN, NULL)){
     Serial.println("Connected!");
-    mqtt->subscribe(TOPIC_RPC_REQUEST);
   }
   else{
     Serial.print("mqtt failed, rc=");
     Serial.println(mqtt->state());  // ← THIS IS KEY - tells exact error code
   }
 }
-
 void    network_begin(PubSubClient* mqttClient){
   mqtt     =mqttClient;
 

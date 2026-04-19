@@ -11,7 +11,8 @@
 
 //MQTT topic
 #define TOPIC_TELEMETRY   "v1/devices/me/telemetry"
-
+#define TOPIC_RPC_REQUEST "v1/devices/me/rpc/request/+"//subscribe this topic
+#define TOPIC_RPC_RESPONSE "v1/devices/me/rpc/response/"//
 //time delay
 #define TELEMETRY_INTERVAL  5000UL
 #define RECONNECT_INTERVAL  5000UL
@@ -29,3 +30,4 @@
 #define PIN_VIBRATION   A0
 #define PIN_LM35        A1
 #define PIN_RELAY 4
+#define RPC_ID_SIZE 12

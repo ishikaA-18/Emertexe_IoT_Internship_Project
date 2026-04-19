@@ -14,22 +14,21 @@ static char sharedBuf[200];
 static EthernetClient ethClient;
 static PubSubClient mqttClient(ethClient);
 unsigned long lastTelemetry=0;
+static SensorManager sensors;
 void setup() 
 {
   Serial.begin(9600);
-  Serial.print("Node1 is booting....");
+  Serial.print("Node2 is booting....");
   // put your setup code here, to run once:
-  // initialise sensor 
-  sensor_begin();
-  //initialise actutors
-  actuators_begin();
+   // initialise sensor 
+   sensor_begin();
+   sensor_init(&sensors);
+   //initialise actutors
+   actuators_begin();
   telemetry_init(sharedBuf,sizeof(sharedBuf));
-  rpc_init(&mqttClient,sharedBuf,sizeof(sharedBuf));//initialising rpc request
-  //upon reviving the data which function needs to be called back
-  mqttClient.setCallback(rpc_mqttCallback);
-  // connect board to internet and mqtt
+  rpc_init(&mqttClient,sharedBuf,sizeof(sharedBuf));
+   // coonect board to internet and mqtt
   network_begin(&mqttClient);
-  mqttClient.setCallback(rpc_mqttCallback);
 }
 void loop() 
 {
@@ -38,7 +37,15 @@ void loop()
   network_maintain();
   //read data from the sensors 
   SensorData data;
-  sensors_read(&data);
+  sensor_read(&data,&sensors);//humidity,temp,ldr,door status,motion status
+
+  //if humidity is more than 85 turn on the relay is off
+  if(data.humidity>=HUMIDITY_CRIT && !actuators_getRelayState()){
+    actuators_setRelay(1);
+  }
+
+
+
   //publish to the cloud 
   //check id data available then push to thingsBoard
   if(network_isConnected()){
@@ -46,8 +53,9 @@ void loop()
     //publish data to things every 5 seconds
     if(now-lastTelemetry>=TELEMETRY_INTERVAL){
       lastTelemetry=now;
-      telemetry_publishTelemetry(&data,actuators_getRelayState);//converting sensor into json and publish
+      telemetry_publishTelemetry(&data,actuators_getRelayState());//converting sensor into json and publish
     }
   }
   actuators_updateStatusLEDs(network_isConnected(),data.sensorError);
 }
+
